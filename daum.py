@@ -97,9 +97,13 @@ def flatten(l):
     :returns: a flatten list.
     :rtype: list
     """
-    if (type(l) == list and len(l) > 1):
-        return l[0] + flatten(l[1:])
-    return l[0]
+    if (type(l) != list):
+        return [l]
+    if (len(l) == 0):
+        return []
+    if (len(l) == 1):
+        return flatten(l[0])
+    return flatten(l[0]) + flatten(l[1:])
 
 
 def parse_into_items(html_doc):
@@ -112,11 +116,13 @@ def parse_into_items(html_doc):
     """
     soup = BeautifulSoup(html_doc, 'html.parser')
     divs = soup.find_all(attrs={'class': 'card_word'})
+
     # Parse needed attributes for Alfred items!
     languages = parse_available_languages(divs)
     nested_words = parse_matching_words(divs)
     nested_hrefs= parse_hrefs(divs)
     nested_defs = parse_definitions(divs)
+
     # Make langs nested with corresponding counts.
     counts = [len(words) for words in nested_words]
     nested_langs = [[lang] * count for lang, count in zip(languages, counts)]
