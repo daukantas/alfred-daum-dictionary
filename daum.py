@@ -21,6 +21,16 @@ def opens_word_page(href):
     return href and 'wordid' in href
 
 
+def is_useable_word(css_class):
+    """Filtering function that avoids "link_txt" which is not useable in our dictionary form.
+
+    :param css_class: a candidate of being a link that is useable.
+    :type css_class: unicode
+    :rtype: boolean
+    """
+    return css_class in ['txt_cleansch', 'txt_searchword']
+
+
 def parse_definitions(divs):
     """Parsing function that scrapes definitions.
 
@@ -51,7 +61,7 @@ def parse_matching_words(divs):
     :returns: a nest list of matching words for each language.
     :rtype: list
     """
-    hyperlinks = [div.find_all(href=opens_word_page) for div in divs]
+    hyperlinks = [div.find_all(href=opens_word_page, class_=is_useable_word) for div in divs]
     return [[hl.text for hl in hyperlink] for hyperlink in hyperlinks]
 
 
@@ -64,7 +74,7 @@ def parse_hrefs(divs):
     :rtype: list
     """
     url = u'http://dic.daum.net'
-    hyperlinks = [div.find_all(href=opens_word_page) for div in divs]
+    hyperlinks = [div.find_all(href=opens_word_page, class_=is_useable_word) for div in divs]
     return [[u'{}{}'.format(url, hl.get('href')) for hl in hyperlink] for hyperlink in hyperlinks]
 
 
@@ -115,12 +125,13 @@ def parse_into_items(html_doc):
     words = flatten(nested_words)
     hrefs = flatten(nested_hrefs)
     defs = flatten(nested_defs)
+
     # Create items to return.
     items = []
     for lang, href, definition, word in zip(langs, hrefs, defs, words):
         items.append({
             'title': word,
-            'subtitle': u'{} | {}'.format(lang, defs),
+            'subtitle': u'{} | {}'.format(lang, u' '.join(defs)),
             'arg': href
         })
     return items
